@@ -1,0 +1,26 @@
+[
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 08:20:21",
+    "end_time": "2025-12-20 08:34:51",
+    "duration_seconds": 869.69,
+    "duration_formatted": "14m 29s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 08:34:51",
+    "end_time": "2025-12-20 08:48:06",
+    "duration_seconds": 794.83,
+    "duration_formatted": "13m 14s",
+    "error": ""
+  }
+]

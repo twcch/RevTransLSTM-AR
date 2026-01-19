@@ -1,0 +1,14 @@
+[
+  {
+    "model": "Transformer",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 12:40:42",
+    "end_time": "2025-12-21 12:54:18",
+    "duration_seconds": 816.15,
+    "duration_formatted": "13m 36s",
+    "error": ""
+  }
+]

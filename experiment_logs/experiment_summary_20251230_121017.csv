@@ -1,0 +1,7 @@
+model,dataset,pred_len,task,status,duration_seconds,duration_formatted,start_time,end_time,error
+TransLSTM_AR_wo4,2330TW,1,long_term_forecast,success,1198.99,19m 58s,2025-12-30 10:01:31,2025-12-30 10:21:30,
+TransLSTM_AR_wo4,2330TW,5,long_term_forecast,success,831.35,13m 51s,2025-12-30 10:21:30,2025-12-30 10:35:21,
+TransLSTM_AR_wo4,AAPL,1,long_term_forecast,success,825.98,13m 45s,2025-12-30 10:35:21,2025-12-30 10:49:07,
+TransLSTM_AR_wo4,AAPL,5,long_term_forecast,success,2419.21,40m 19s,2025-12-30 10:49:07,2025-12-30 11:29:27,
+TransLSTM_AR_wo4,SPX,1,long_term_forecast,success,898.44,14m 58s,2025-12-30 11:29:27,2025-12-30 11:44:25,
+TransLSTM_AR_wo4,SPX,5,long_term_forecast,success,1552.21,25m 52s,2025-12-30 11:44:25,2025-12-30 12:10:17,

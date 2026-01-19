@@ -1,0 +1,26 @@
+[
+  {
+    "model": "iTransformer",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-18 13:52:06",
+    "end_time": "2025-12-18 14:14:16",
+    "duration_seconds": 1330.17,
+    "duration_formatted": "22m 10s",
+    "error": ""
+  },
+  {
+    "model": "iTransformer",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-18 14:14:16",
+    "end_time": "2025-12-18 14:35:36",
+    "duration_seconds": 1280.06,
+    "duration_formatted": "21m 20s",
+    "error": ""
+  }
+]

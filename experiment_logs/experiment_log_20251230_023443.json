@@ -1,0 +1,74 @@
+[
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-30 01:29:31",
+    "end_time": "2025-12-30 01:40:46",
+    "duration_seconds": 674.72,
+    "duration_formatted": "11m 14s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-30 01:40:46",
+    "end_time": "2025-12-30 01:50:07",
+    "duration_seconds": 560.75,
+    "duration_formatted": "9m 20s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-30 01:50:07",
+    "end_time": "2025-12-30 02:02:22",
+    "duration_seconds": 735.64,
+    "duration_formatted": "12m 15s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-30 02:02:22",
+    "end_time": "2025-12-30 02:13:11",
+    "duration_seconds": 648.7,
+    "duration_formatted": "10m 48s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SPX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-30 02:13:11",
+    "end_time": "2025-12-30 02:25:23",
+    "duration_seconds": 732.02,
+    "duration_formatted": "12m 12s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SPX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-30 02:25:23",
+    "end_time": "2025-12-30 02:34:43",
+    "duration_seconds": 559.9,
+    "duration_formatted": "9m 19s",
+    "error": ""
+  }
+]

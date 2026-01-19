@@ -1,0 +1,6 @@
+model,dataset,pred_len,task,status,duration_seconds,duration_formatted,start_time,end_time,error
+TimesNet,2330TW,1,long_term_forecast,success,1147.61,19m 7s,2025-12-17 17:57:58,2025-12-17 18:17:06,
+TimesNet,AAPL,1,long_term_forecast,success,750.13,12m 30s,2025-12-17 18:17:06,2025-12-17 18:29:36,
+TimesNet,SPX,1,long_term_forecast,success,963.52,16m 3s,2025-12-17 18:29:36,2025-12-17 18:45:39,
+TimesNet,SOX,1,long_term_forecast,success,1734.68,28m 54s,2025-12-17 18:45:40,2025-12-17 19:14:34,
+TimesNet,NDX,1,long_term_forecast,success,709.56,11m 49s,2025-12-17 19:14:34,2025-12-17 19:26:24,

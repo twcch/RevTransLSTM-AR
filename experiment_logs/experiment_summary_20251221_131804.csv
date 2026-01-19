@@ -1,0 +1,3 @@
+model,dataset,pred_len,task,status,duration_seconds,duration_formatted,start_time,end_time,error
+Transformer,2330TW,1,long_term_forecast,success,816.15,13m 36s,2025-12-21 12:40:42,2025-12-21 12:54:18,
+Transformer,2330TW,5,long_term_forecast,success,1425.94,23m 45s,2025-12-21 12:54:18,2025-12-21 13:18:04,

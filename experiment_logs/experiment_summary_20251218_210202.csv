@@ -1,0 +1,35 @@
+model,dataset,pred_len,task,status,duration_seconds,duration_formatted,start_time,end_time,error
+iTransformer,2330TW,1,long_term_forecast,success,1330.17,22m 10s,2025-12-18 13:52:06,2025-12-18 14:14:16,
+iTransformer,2330TW,5,long_term_forecast,success,1280.06,21m 20s,2025-12-18 14:14:16,2025-12-18 14:35:36,
+iTransformer,AAPL,1,long_term_forecast,success,608.11,10m 8s,2025-12-18 14:35:36,2025-12-18 14:45:44,
+iTransformer,AAPL,5,long_term_forecast,success,1626.96,27m 6s,2025-12-18 14:45:44,2025-12-18 15:12:51,
+iTransformer,SPX,1,long_term_forecast,success,828.61,13m 48s,2025-12-18 15:12:51,2025-12-18 15:26:40,
+iTransformer,SPX,5,long_term_forecast,success,738.62,12m 18s,2025-12-18 15:26:40,2025-12-18 15:38:59,
+iTransformer,SOX,1,long_term_forecast,success,903.25,15m 3s,2025-12-18 15:38:59,2025-12-18 15:54:02,
+iTransformer,SOX,5,long_term_forecast,success,823.49,13m 43s,2025-12-18 15:54:02,2025-12-18 16:07:45,
+iTransformer,NDX,1,long_term_forecast,success,1115.03,18m 35s,2025-12-18 16:07:45,2025-12-18 16:26:20,
+iTransformer,NDX,5,long_term_forecast,success,767.22,12m 47s,2025-12-18 16:26:20,2025-12-18 16:39:08,
+ETSformer,2330TW,1,long_term_forecast,failed,39.03,39s,2025-12-18 16:39:08,2025-12-18 16:39:47,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,2330TW,5,long_term_forecast,failed,38.19,38s,2025-12-18 16:39:47,2025-12-18 16:40:25,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,AAPL,1,long_term_forecast,failed,37.82,37s,2025-12-18 16:40:25,2025-12-18 16:41:03,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,AAPL,5,long_term_forecast,failed,38.65,38s,2025-12-18 16:41:03,2025-12-18 16:41:41,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,SPX,1,long_term_forecast,failed,38.5,38s,2025-12-18 16:41:41,2025-12-18 16:42:20,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,SPX,5,long_term_forecast,failed,38.4,38s,2025-12-18 16:42:20,2025-12-18 16:42:58,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,SOX,1,long_term_forecast,failed,38.64,38s,2025-12-18 16:42:58,2025-12-18 16:43:37,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,SOX,5,long_term_forecast,failed,37.81,37s,2025-12-18 16:43:37,2025-12-18 16:44:15,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,NDX,1,long_term_forecast,failed,38.82,38s,2025-12-18 16:44:15,2025-12-18 16:44:54,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+ETSformer,NDX,5,long_term_forecast,failed,38.08,38s,2025-12-18 16:44:54,2025-12-18 16:45:32,indices should be either on cpu or on the same device as the indexed tensor (cpu)
+TiDE,2330TW,1,long_term_forecast,success,1823.9,30m 23s,2025-12-18 16:45:32,2025-12-18 17:15:56,
+TiDE,2330TW,5,long_term_forecast,success,1164.26,19m 24s,2025-12-18 17:15:56,2025-12-18 17:35:20,
+TiDE,AAPL,1,long_term_forecast,success,1836.59,30m 36s,2025-12-18 17:35:20,2025-12-18 18:05:57,
+TiDE,AAPL,5,long_term_forecast,success,1164.17,19m 24s,2025-12-18 18:05:57,2025-12-18 18:25:21,
+TiDE,SPX,1,long_term_forecast,success,1260.38,21m 0s,2025-12-18 18:25:21,2025-12-18 18:46:21,
+TiDE,SPX,5,long_term_forecast,success,1172.04,19m 32s,2025-12-18 18:46:21,2025-12-18 19:05:53,
+TiDE,SOX,1,long_term_forecast,success,1917.86,31m 57s,2025-12-18 19:05:53,2025-12-18 19:37:51,
+TiDE,SOX,5,long_term_forecast,success,1425.96,23m 45s,2025-12-18 19:37:51,2025-12-18 20:01:37,
+TiDE,NDX,1,long_term_forecast,success,1642.83,27m 22s,2025-12-18 20:01:37,2025-12-18 20:29:00,
+TiDE,NDX,5,long_term_forecast,success,1829.65,30m 29s,2025-12-18 20:29:00,2025-12-18 20:59:30,
+TimeMixer,2330TW,1,long_term_forecast,failed,37.86,37s,2025-12-18 20:59:30,2025-12-18 21:00:07,The size of tensor a (7) must match the size of tensor b (8) at non-singleton dimension 1
+TimeMixer,2330TW,5,long_term_forecast,failed,38.17,38s,2025-12-18 21:00:07,2025-12-18 21:00:46,The size of tensor a (7) must match the size of tensor b (8) at non-singleton dimension 1
+TimeMixer,AAPL,1,long_term_forecast,failed,38.21,38s,2025-12-18 21:00:46,2025-12-18 21:01:24,The size of tensor a (7) must match the size of tensor b (8) at non-singleton dimension 1
+TimeMixer,AAPL,5,long_term_forecast,failed,38.12,38s,2025-12-18 21:01:24,2025-12-18 21:02:02,The size of tensor a (7) must match the size of tensor b (8) at non-singleton dimension 1

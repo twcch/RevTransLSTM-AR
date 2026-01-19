@@ -1,0 +1,11 @@
+model,dataset,pred_len,task,status,duration_seconds,duration_formatted,start_time,end_time,error
+TransLSTM_AR,2330TW,1,long_term_forecast,failed,0.01,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,2330TW,5,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,AAPL,1,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,AAPL,5,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,SPX,1,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,SPX,5,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,SOX,1,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,SOX,5,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,NDX,1,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'
+TransLSTM_AR,NDX,5,long_term_forecast,failed,0.0,0s,2025-12-21 10:29:36,2025-12-21 10:29:36,'Namespace' object has no attribute 'rev_in'

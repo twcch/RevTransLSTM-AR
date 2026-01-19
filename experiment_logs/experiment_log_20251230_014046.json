@@ -1,0 +1,14 @@
+[
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-30 01:29:31",
+    "end_time": "2025-12-30 01:40:46",
+    "duration_seconds": 674.72,
+    "duration_formatted": "11m 14s",
+    "error": ""
+  }
+]

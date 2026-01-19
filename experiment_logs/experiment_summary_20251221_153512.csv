@@ -1,0 +1,8 @@
+model,dataset,pred_len,task,status,duration_seconds,duration_formatted,start_time,end_time,error
+Transformer,2330TW,1,long_term_forecast,success,816.15,13m 36s,2025-12-21 12:40:42,2025-12-21 12:54:18,
+Transformer,2330TW,5,long_term_forecast,success,1425.94,23m 45s,2025-12-21 12:54:18,2025-12-21 13:18:04,
+Transformer,AAPL,1,long_term_forecast,success,725.19,12m 5s,2025-12-21 13:18:04,2025-12-21 13:30:09,
+Transformer,AAPL,5,long_term_forecast,success,1570.73,26m 10s,2025-12-21 13:30:09,2025-12-21 13:56:20,
+Transformer,SPX,1,long_term_forecast,success,1329.32,22m 9s,2025-12-21 13:56:20,2025-12-21 14:18:29,
+Transformer,SPX,5,long_term_forecast,success,2356.29,39m 16s,2025-12-21 14:18:29,2025-12-21 14:57:45,
+Transformer,SOX,1,long_term_forecast,success,2246.29,37m 26s,2025-12-21 14:57:45,2025-12-21 15:35:12,

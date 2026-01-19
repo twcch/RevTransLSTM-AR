@@ -1,0 +1,98 @@
+[
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 10:33:17",
+    "end_time": "2025-12-21 10:46:36",
+    "duration_seconds": 798.36,
+    "duration_formatted": "13m 18s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 10:46:36",
+    "end_time": "2025-12-21 10:57:23",
+    "duration_seconds": 647.57,
+    "duration_formatted": "10m 47s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 10:57:23",
+    "end_time": "2025-12-21 11:06:52",
+    "duration_seconds": 568.74,
+    "duration_formatted": "9m 28s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 11:06:52",
+    "end_time": "2025-12-21 11:18:57",
+    "duration_seconds": 725.28,
+    "duration_formatted": "12m 5s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SPX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 11:18:57",
+    "end_time": "2025-12-21 11:27:39",
+    "duration_seconds": 521.6,
+    "duration_formatted": "8m 41s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SPX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 11:27:39",
+    "end_time": "2025-12-21 11:38:31",
+    "duration_seconds": 651.67,
+    "duration_formatted": "10m 51s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SOX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 11:38:31",
+    "end_time": "2025-12-21 11:47:54",
+    "duration_seconds": 563.66,
+    "duration_formatted": "9m 23s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SOX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-21 11:47:54",
+    "end_time": "2025-12-21 11:57:25",
+    "duration_seconds": 570.62,
+    "duration_formatted": "9m 30s",
+    "error": ""
+  }
+]

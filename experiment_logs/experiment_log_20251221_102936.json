@@ -1,0 +1,122 @@
+[
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.01,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SPX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SPX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SOX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SOX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "NDX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "NDX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-21 10:29:36",
+    "end_time": "2025-12-21 10:29:36",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'Namespace' object has no attribute 'rev_in'"
+  }
+]

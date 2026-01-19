@@ -1,0 +1,50 @@
+[
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-19 08:14:11",
+    "end_time": "2025-12-19 08:28:10",
+    "duration_seconds": 838.89,
+    "duration_formatted": "13m 58s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-19 08:28:10",
+    "end_time": "2025-12-19 08:46:19",
+    "duration_seconds": 1089.69,
+    "duration_formatted": "18m 9s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-19 08:46:19",
+    "end_time": "2025-12-19 08:58:07",
+    "duration_seconds": 707.78,
+    "duration_formatted": "11m 47s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-19 08:58:07",
+    "end_time": "2025-12-19 09:10:39",
+    "duration_seconds": 751.81,
+    "duration_formatted": "12m 31s",
+    "error": ""
+  }
+]

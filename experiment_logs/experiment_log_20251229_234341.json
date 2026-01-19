@@ -1,0 +1,98 @@
+[
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-29 23:43:41",
+    "end_time": "2025-12-29 23:43:41",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'TransLSTM_AR_wo4'"
+  },
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-29 23:43:41",
+    "end_time": "2025-12-29 23:43:41",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'TransLSTM_AR_wo4'"
+  },
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "AAPL",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-29 23:43:41",
+    "end_time": "2025-12-29 23:43:41",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'TransLSTM_AR_wo4'"
+  },
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "AAPL",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-29 23:43:41",
+    "end_time": "2025-12-29 23:43:41",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'TransLSTM_AR_wo4'"
+  },
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "SPX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-29 23:43:41",
+    "end_time": "2025-12-29 23:43:41",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'TransLSTM_AR_wo4'"
+  },
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "SPX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-29 23:43:41",
+    "end_time": "2025-12-29 23:43:41",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'TransLSTM_AR_wo4'"
+  },
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "SOX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-29 23:43:41",
+    "end_time": "2025-12-29 23:43:41",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'TransLSTM_AR_wo4'"
+  },
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "SOX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-29 23:43:41",
+    "end_time": "2025-12-29 23:43:41",
+    "duration_seconds": 0.0,
+    "duration_formatted": "0s",
+    "error": "'TransLSTM_AR_wo4'"
+  }
+]

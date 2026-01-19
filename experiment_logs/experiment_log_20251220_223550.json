@@ -1,0 +1,86 @@
+[
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 20:56:11",
+    "end_time": "2025-12-20 21:08:08",
+    "duration_seconds": 717.33,
+    "duration_formatted": "11m 57s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 21:08:08",
+    "end_time": "2025-12-20 21:18:55",
+    "duration_seconds": 646.9,
+    "duration_formatted": "10m 46s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 21:18:55",
+    "end_time": "2025-12-20 21:32:13",
+    "duration_seconds": 797.34,
+    "duration_formatted": "13m 17s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "AAPL",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 21:32:13",
+    "end_time": "2025-12-20 21:53:19",
+    "duration_seconds": 1266.26,
+    "duration_formatted": "21m 6s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SPX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 21:53:19",
+    "end_time": "2025-12-20 22:06:34",
+    "duration_seconds": 795.56,
+    "duration_formatted": "13m 15s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SPX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 22:06:35",
+    "end_time": "2025-12-20 22:21:15",
+    "duration_seconds": 880.26,
+    "duration_formatted": "14m 40s",
+    "error": ""
+  },
+  {
+    "model": "TransLSTM_AR",
+    "dataset": "SOX",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-20 22:21:15",
+    "end_time": "2025-12-20 22:35:50",
+    "duration_seconds": 874.9,
+    "duration_formatted": "14m 34s",
+    "error": ""
+  }
+]

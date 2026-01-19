@@ -1,0 +1,2 @@
+model,dataset,pred_len,task,status,duration_seconds,duration_formatted,start_time,end_time,error
+DLinear,2330TW,1,long_term_forecast,success,973.66,16m 13s,2025-12-17 20:12:14,2025-12-17 20:28:28,

@@ -1,0 +1,26 @@
+[
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "2330TW",
+    "pred_len": 1,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-30 08:51:07",
+    "end_time": "2025-12-30 08:52:01",
+    "duration_seconds": 53.58,
+    "duration_formatted": "53s",
+    "error": "Given groups=1, weight of size [512, 4, 3], expected input[32, 7, 9] to have 4 channels, but got 7 channels instead"
+  },
+  {
+    "model": "TransLSTM_AR_wo4",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "failed",
+    "start_time": "2025-12-30 08:52:01",
+    "end_time": "2025-12-30 08:52:43",
+    "duration_seconds": 42.21,
+    "duration_formatted": "42s",
+    "error": "Given groups=1, weight of size [512, 4, 3], expected input[32, 7, 9] to have 4 channels, but got 7 channels instead"
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "model": "TimesNet",
+    "dataset": "2330TW",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-17 16:23:43",
+    "end_time": "2025-12-17 16:51:47",
+    "duration_seconds": 1684.55,
+    "duration_formatted": "28m 4s",
+    "error": ""
+  },
+  {
+    "model": "TimesNet",
+    "dataset": "AAPL",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-17 16:51:47",
+    "end_time": "2025-12-17 17:05:54",
+    "duration_seconds": 846.87,
+    "duration_formatted": "14m 6s",
+    "error": ""
+  },
+  {
+    "model": "TimesNet",
+    "dataset": "SPX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-17 17:05:54",
+    "end_time": "2025-12-17 17:18:50",
+    "duration_seconds": 776.2,
+    "duration_formatted": "12m 56s",
+    "error": ""
+  },
+  {
+    "model": "TimesNet",
+    "dataset": "SOX",
+    "pred_len": 5,
+    "task": "long_term_forecast",
+    "status": "success",
+    "start_time": "2025-12-17 17:18:50",
+    "end_time": "2025-12-17 17:47:35",
+    "duration_seconds": 1725.07,
+    "duration_formatted": "28m 45s",
+    "error": ""
+  }
+]

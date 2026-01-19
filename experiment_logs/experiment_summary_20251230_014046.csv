@@ -1,0 +1,2 @@
+model,dataset,pred_len,task,status,duration_seconds,duration_formatted,start_time,end_time,error
+TransLSTM_AR,2330TW,1,long_term_forecast,success,674.72,11m 14s,2025-12-30 01:29:31,2025-12-30 01:40:46,
