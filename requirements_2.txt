@@ -113,7 +113,7 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.3
 uni2ts==2.0.0
-urllib3==2.6.2
+urllib3==2.6.3
 utilsforecast==0.2.15
 wadler_lindig==0.1.7
 wandb==0.23.1
