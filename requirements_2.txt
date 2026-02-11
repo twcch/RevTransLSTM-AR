@@ -64,7 +64,7 @@ orjson==3.11.5
 packaging==25.0
 pandas==2.1.4
 patool==4.0.1
-pillow==12.0.0
+pillow==12.1.1
 platformdirs==4.5.1
 product_key_memory==0.3.0
 propcache==0.4.1
