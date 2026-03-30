@@ -74,7 +74,7 @@ pyarrow==22.0.0
 pyarrow-hotfix==0.7
 pydantic==2.12.5
 pydantic_core==2.41.5
-Pygments==2.19.2
+Pygments==2.20.0
 pyparsing==3.2.5
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.0
