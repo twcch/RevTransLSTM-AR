@@ -18,7 +18,7 @@ class Exp_Imputation(Exp_Basic):
         super(Exp_Imputation, self).__init__(args)
 
     def _build_model(self):
-        model = self.model_dict[self.args.model].Model(self.args).float()
+        model = self.model_dict[self.args.model](self.args).float()
 
         if self.args.use_multi_gpu and self.args.use_gpu:
             model = nn.DataParallel(model, device_ids=self.args.device_ids)
@@ -214,15 +214,24 @@ class Exp_Imputation(Exp_Basic):
             os.makedirs(folder_path)
 
         mae, mse, rmse, mape, mspe, r2 = metric(preds[masks == 0], trues[masks == 0])
-        print('mse:{}, mae:{}, mape:{}, r2:{}'.format(mse, mae, mape, r2))
+        print('mse:{}, mae:{}, rmse:{}, mape:{}, mspe:{}, r2:{}'.format(mse, mae, rmse, mape, mspe, r2))
         f = open("result_imputation.txt", 'a')
         f.write(setting + "  \n")
-        f.write('mse:{}, mae:{}, mape:{}, r2:{}'.format(mse, mae, mape, r2))
+        f.write('mse:{}, mae:{}, rmse:{}, mape:{}, mspe:{}, r2:{}'.format(mse, mae, rmse, mape, mspe, r2))
         f.write('\n')
         f.write('\n')
         f.close()
 
-        np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
+        np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe, r2]))
         np.save(folder_path + 'pred.npy', preds)
         np.save(folder_path + 'true.npy', trues)
+
+        # Generate publication-quality figures from .npy results
+        try:
+            from utils.visualization import generate_figures
+            test_results_path = './test_results/' + setting + '/'
+            generate_figures(input_path=folder_path, output_path=test_results_path)
+        except Exception as e:
+            print(f'Warning: figure generation failed: {e}')
+
         return
