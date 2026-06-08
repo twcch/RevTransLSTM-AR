@@ -7,7 +7,7 @@ from layers.Transformer_EncDec import Encoder, EncoderLayer
 
 
 class CrossAttention(nn.Module):
-    """以 FullAttention 包裝的標準 Cross-Attention。"""
+    """Standard (non-causal) cross-attention wrapped around ``FullAttention``."""
 
     def __init__(self, d_model: int, n_heads: int, dropout: float = 0.1, factor: int = 5):
         super().__init__()
@@ -29,11 +29,12 @@ class CrossAttention(nn.Module):
 
 class Model(nn.Module):
     """
-    Ablation: worevin — 移除 RevIN 的 RevTransLSTM-AR。
+    Ablation: worevin — RevTransLSTM-AR with RevIN removed.
 
-    保留 Transformer Encoder、LSTM、Cross-Attention 與 closed-loop latent feedback，
-    但 encoder/decoder 輸入不做可逆 instance normalization，輸出也不再反標準化。
-    用於評估 RevIN 對分布偏移的修正效果。
+    Keeps the Transformer Encoder, the LSTM, Cross-Attention and the closed-loop
+    latent feedback, but the encoder/decoder inputs are not reversibly instance-
+    normalized and the output is not denormalized. Used to measure how much RevIN
+    corrects for distribution shift.
     """
 
     def __init__(self, configs):
@@ -93,7 +94,8 @@ class Model(nn.Module):
 
         self.projection = nn.Linear(configs.d_model, configs.c_out)
 
-        # Closed-loop feedback：將 c_out 維的預測投影回 d_model 以餵入下一步 LSTM
+        # Closed-loop feedback: project the c_out-dim prediction back to d_model
+        # so it can be added to the next step's LSTM input.
         self.out_proj = nn.Linear(configs.c_out, configs.d_model)
 
     def forward(
@@ -102,11 +104,12 @@ class Model(nn.Module):
         x_dec, x_mark_dec,
         enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None
     ):
-        # 1. Encoder：產生 cross-attention 使用的 memory（無 RevIN 標準化）
+        # 1. Encoder: produce the cross-attention memory (no RevIN normalization).
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
         enc_out, _ = self.encoder(enc_out, attn_mask=enc_self_mask)
 
-        # 2. Decoder seed：取 label_len 段 embedding 的最後一步作為 LSTM 起始輸入
+        # 2. Decoder seed: embed the label_len segment and take its last step as
+        #    the LSTM's initial input.
         dec_input = x_dec[:, :self.label_len, :]
         dec_mark = x_mark_dec[:, :self.label_len, :]
         dec_embed = self.dec_embedding(dec_input, dec_mark)
@@ -115,7 +118,8 @@ class Model(nn.Module):
         hidden = None
         outputs = []
 
-        # 3. 自迴歸解碼：每步以 closed-loop latent feedback 餵入下一步
+        # 3. Autoregressive decoding: each step feeds the next via closed-loop
+        #    latent feedback.
         for i in range(self.pred_len):
             lstm_out, hidden = self.lstm(lstm_input, hidden)    # [B, 1, D]
 
@@ -129,7 +133,8 @@ class Model(nn.Module):
             pred = self.projection(attn_out)                    # [B, 1, c_out]
             outputs.append(pred)
 
-            # 預測投影回 d_model，與 cross-attention 輸出殘差相加作為下一步輸入
+            # Project the prediction back to d_model and add it to the cross-attention
+            # output; this closed-loop latent feedback becomes the next step's LSTM input.
             pred_feedback = self.out_proj(pred)                 # [B, 1, D]
             lstm_input = attn_out + pred_feedback
 

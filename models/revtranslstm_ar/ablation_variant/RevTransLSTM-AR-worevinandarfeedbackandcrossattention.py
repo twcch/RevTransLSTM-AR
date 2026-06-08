@@ -8,12 +8,14 @@ from layers.Transformer_EncDec import Encoder, EncoderLayer
 
 class Model(nn.Module):
     """
-    Ablation: worevinandarfeedbackandcrossattention — 同時移除 RevIN、AR feedback
-    與 Cross-Attention 的 RevTransLSTM-AR。
+    Ablation: worevinandarfeedbackandcrossattention — RevTransLSTM-AR with RevIN,
+    AR feedback and Cross-Attention all removed.
 
-    僅保留 Transformer Encoder（其輸出不被使用）、LSTM 與 projection；
-    解碼為 open-loop，每步以 `attn_out = lstm_out` 直接 projection 出預測。
-    作為對照基線，用於評估全部組件同時關閉時的退化程度。
+    Keeps only the Transformer Encoder (whose output is unused), the LSTM and the
+    projection; decoding is open-loop and each step projects the prediction
+    directly from ``attn_out = lstm_out``. Serves as a control baseline that
+    measures how far the model degrades when every component is switched off at
+    once.
     """
 
     def __init__(self, configs):
@@ -72,11 +74,13 @@ class Model(nn.Module):
         x_dec, x_mark_dec,
         enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None
     ):
-        # 1. Encoder：輸出不參與解碼，但保留以維持 encoder 路徑訓練
+        # 1. Encoder: output is not used for decoding, but is kept so the encoder
+        #    path keeps training.
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
         enc_out, _ = self.encoder(enc_out, attn_mask=enc_self_mask)
 
-        # 2. Decoder seed：取 label_len 段 embedding 的最後一步作為 LSTM 起始輸入
+        # 2. Decoder seed: embed the label_len segment and take its last step as
+        #    the LSTM's initial input.
         dec_input = x_dec[:, :self.label_len, :]
         dec_mark = x_mark_dec[:, :self.label_len, :]
         dec_embed = self.dec_embedding(dec_input, dec_mark)
@@ -85,7 +89,7 @@ class Model(nn.Module):
         hidden = None
         outputs = []
 
-        # 3. 自迴歸解碼：無 cross-attention、無 feedback
+        # 3. Autoregressive decoding: no cross-attention, no feedback.
         for i in range(self.pred_len):
             lstm_out, hidden = self.lstm(lstm_input, hidden)    # [B, 1, D]
 
@@ -94,7 +98,7 @@ class Model(nn.Module):
             pred = self.projection(attn_out)                    # [B, 1, c_out]
             outputs.append(pred)
 
-            # 無 AR feedback：直接以 lstm_out 餵入下一步 LSTM
+            # No AR feedback: feed lstm_out straight into the next LSTM step.
             lstm_input = attn_out
 
         outputs = torch.cat(outputs, dim=1)                     # [B, pred_len, c_out]

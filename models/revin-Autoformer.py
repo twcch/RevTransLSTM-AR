@@ -149,7 +149,7 @@ class Model(nn.Module):
         enc_out, attns = self.encoder(enc_out, attn_mask=None)
 
         # Output
-        # the output transformer encoder/decoder embeddings don't include non-linearity
+        # encoder output ends with LayerNorm (no final activation); add a non-linearity here
         output = self.act(enc_out)
         output = self.dropout(output)
         # zero-out padding embeddings

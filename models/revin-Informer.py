@@ -9,7 +9,11 @@ from layers.RevIN import RevIN
 
 class Model(nn.Module):
     """
-    Informer with Propspare attention in O(LlogL) complexity
+    RevIN + Informer
+
+    Informer uses ProbSparse self-attention to reach O(L log L) complexity, and
+    (for forecasting) optional distilling ConvLayers between encoder layers.
+    RevIN normalizes the encoder/decoder inputs and denormalizes the output.
     Paper link: https://ojs.aaai.org/index.php/AAAI/article/view/17325/17132
     """
 
@@ -147,7 +151,7 @@ class Model(nn.Module):
         enc_out, attns = self.encoder(enc_out, attn_mask=None)
 
         # Output
-        output = self.act(enc_out)  # the output transformer encoder/decoder embeddings don't include non-linearity
+        output = self.act(enc_out)  # encoder output ends with LayerNorm (no final activation); add a non-linearity here
         output = self.dropout(output)
         output = output * x_mark_enc.unsqueeze(-1)  # zero-out padding embeddings
         output = output.reshape(output.shape[0], -1)  # (batch_size, seq_length * d_model)

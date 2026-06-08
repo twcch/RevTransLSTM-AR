@@ -55,6 +55,7 @@ class Model(nn.Module):
         return gru_out
 
     def forecast(self, x_enc):
+        # Direct multi-step: project the last hidden state to the whole horizon at once.
         gru_out = self.encoder(x_enc)
         last_step = gru_out[:, -1, :]  # [B, d_model]
         out = self.projection(last_step)  # [B, pred_len * enc_in]

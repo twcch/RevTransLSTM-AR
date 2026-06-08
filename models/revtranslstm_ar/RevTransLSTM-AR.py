@@ -7,7 +7,17 @@ from layers.Transformer_EncDec import Encoder, EncoderLayer
 
 
 class RevIN(nn.Module):
-    """Reversible Instance Normalization：以 detach 後的統計量做標準化／反標準化。"""
+    """Reversible Instance Normalization (RevIN).
+
+    Normalizes / denormalizes each instance with statistics that are detached
+    from the autograd graph, so the per-instance mean and standard deviation do
+    not receive gradients. This is the standard remedy for distribution shift in
+    non-stationary time series (Kim et al., ICLR 2022).
+
+    This in-model copy adds a ``'transform'`` mode (not present in the shared
+    ``layers/RevIN``) so the decoder input can be normalized with the statistics
+    that were already computed and cached from the encoder input.
+    """
 
     def __init__(self, num_features: int, eps=1e-5, affine=True):
         super(RevIN, self).__init__()
@@ -18,16 +28,17 @@ class RevIN(nn.Module):
             self._init_params()
 
     def _init_params(self):
+        # Learnable per-feature scale and shift applied after standardization.
         self.affine_weight = nn.Parameter(torch.ones(self.num_features))
         self.affine_bias = nn.Parameter(torch.zeros(self.num_features))
 
     def forward(self, x, mode: str):
         if mode == 'norm':
-            # 計算並儲存統計量後做標準化（每個 forward 流程僅呼叫一次）
+            # Compute and cache statistics, then standardize (called once per forward).
             self._get_statistics(x)
             x = self._normalize(x)
         elif mode == 'transform':
-            # 沿用 'norm' 已算好的統計量做標準化，不重算、不覆寫
+            # Reuse the statistics already cached by 'norm'; do not recompute or overwrite.
             x = self._normalize(x)
         elif mode == 'denorm':
             x = self._denormalize(x)
@@ -40,6 +51,8 @@ class RevIN(nn.Module):
         self.stdev = None
 
     def _get_statistics(self, x):
+        # Reduce over every dimension except batch (0) and feature (last);
+        # for a [B, L, F] tensor this reduces the time axis, giving [B, 1, F].
         dim2reduce = tuple(range(1, x.ndim - 1))
         self.mean = torch.mean(x, dim=dim2reduce, keepdim=True).detach()
         self.stdev = torch.sqrt(torch.var(x, dim=dim2reduce, keepdim=True, unbiased=False) + self.eps).detach()
@@ -53,6 +66,9 @@ class RevIN(nn.Module):
 
     def _denormalize(self, x):
         if self.affine:
+            # Invert the affine transform first. The denominator adds eps times a
+            # detached copy of affine_weight: this keeps the division well-conditioned
+            # while preventing gradients from flowing back through the stability term.
             x = (x - self.affine_bias) / (self.affine_weight + self.eps * self.affine_weight.detach())
         x = x * self.stdev
         x = x + self.mean
@@ -60,7 +76,12 @@ class RevIN(nn.Module):
 
 
 class CrossAttention(nn.Module):
-    """以 FullAttention 包裝的標準 Cross-Attention。"""
+    """Standard (non-causal) cross-attention wrapped around ``FullAttention``.
+
+    The query comes from the decoder LSTM state while keys/values come from the
+    encoder memory, so each decoding step can attend over the whole input window.
+    ``mask_flag=False`` means no causal mask is applied.
+    """
 
     def __init__(self, d_model: int, n_heads: int, dropout: float = 0.1, factor: int = 5):
         super().__init__()
@@ -76,6 +97,7 @@ class CrossAttention(nn.Module):
         )
 
     def forward(self, query, key, value, attn_mask=None):
+        # AttentionLayer returns (output, attn_weights); we keep only the output.
         out, _ = self.attention(query, key, value, attn_mask=attn_mask)
         return out
 
@@ -84,12 +106,14 @@ class Model(nn.Module):
     """
     RevTransLSTM-AR
 
-    架構組成：
-    1. RevIN：對 encoder/decoder 輸入做可逆 instance normalization。
-    2. Transformer Encoder：提取輸入序列的全域表示作為 cross-attention 的 memory。
-    3. LSTM + Cross-Attention：以自迴歸方式逐步解碼。
-    4. Closed-loop latent feedback：每步預測經由可學習的 `out_proj` 投影回 latent
-       空間，與 cross-attention 輸出殘差相加，作為下一步 LSTM 輸入。
+    Architecture:
+    1. RevIN: reversible instance normalization on the encoder/decoder inputs.
+    2. Transformer Encoder: extracts a global representation of the input
+       sequence that serves as the cross-attention memory.
+    3. LSTM + Cross-Attention: decodes autoregressively, one step at a time.
+    4. Closed-loop latent feedback: each step's prediction is projected back to
+       the latent space by the learnable ``out_proj`` and added (residually) to
+       the cross-attention output to form the next step's LSTM input.
     """
 
     def __init__(self, configs):
@@ -102,7 +126,7 @@ class Model(nn.Module):
         self.c_out = configs.c_out
         self.enc_in = configs.enc_in
 
-        # 若 configs 未提供 rev_in，預設啟用 RevIN
+        # Enable RevIN by default when configs does not provide `rev_in`.
         use_revin = getattr(configs, 'rev_in', True)
         self.revin = RevIN(configs.enc_in) if use_revin else None
 
@@ -136,6 +160,8 @@ class Model(nn.Module):
             norm_layer=nn.LayerNorm(configs.d_model)
         )
 
+        # Decoder recurrence: input and hidden size are both d_model so the
+        # cross-attention output can be fed straight back in (see feedback below).
         self.lstm = nn.LSTM(
             input_size=configs.d_model,
             hidden_size=configs.d_model,
@@ -151,9 +177,11 @@ class Model(nn.Module):
             factor=configs.factor
         )
 
+        # Maps the latent decoder state to the c_out target variables per step.
         self.projection = nn.Linear(configs.d_model, configs.c_out)
 
-        # Closed-loop feedback：將 c_out 維的預測投影回 d_model 以餵入下一步 LSTM
+        # Closed-loop feedback: project the c_out-dim prediction back to d_model
+        # so it can be added to the next step's LSTM input.
         self.out_proj = nn.Linear(configs.c_out, configs.d_model)
 
     def forward(
@@ -162,20 +190,23 @@ class Model(nn.Module):
         x_dec, x_mark_dec,
         enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None
     ):
-        # 1. RevIN 標準化：x_enc 計算並儲存統計量，x_dec 沿用同一份統計量
+        # 1. RevIN normalization: x_enc computes and caches the statistics,
+        #    x_dec reuses that same cached set of statistics.
         if self.revin is not None:
             x_enc = self.revin(x_enc, 'norm')
 
-            # 僅對 dec_in 前 enc_in 個特徵做標準化，其餘欄位保留原值後拼回
+            # Normalize only the first enc_in features of dec_in (the real values);
+            # keep the remaining columns (e.g. time marks) untouched and concat back.
             x_dec_input_vals = x_dec[:, :, :self.enc_in]
             x_dec_input_vals = self.revin(x_dec_input_vals, 'transform')
             x_dec = torch.cat([x_dec_input_vals, x_dec[:, :, self.enc_in:]], dim=-1)
 
-        # 2. Encoder：產生 cross-attention 使用的 memory
+        # 2. Encoder: produce the memory consumed by cross-attention.
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
         enc_out, _ = self.encoder(enc_out, attn_mask=enc_self_mask)
 
-        # 3. Decoder seed：取 label_len 段 embedding 的最後一步作為 LSTM 起始輸入
+        # 3. Decoder seed: embed the label_len segment and take its last step as
+        #    the LSTM's initial input.
         dec_input = x_dec[:, :self.label_len, :]
         dec_mark = x_mark_dec[:, :self.label_len, :]
         dec_embed = self.dec_embedding(dec_input, dec_mark)
@@ -184,7 +215,8 @@ class Model(nn.Module):
         hidden = None
         outputs = []
 
-        # 4. 自迴歸解碼：每步以 closed-loop latent feedback 餵入下一步
+        # 4. Autoregressive decoding: each step feeds the next via closed-loop
+        #    latent feedback.
         for i in range(self.pred_len):
             lstm_out, hidden = self.lstm(lstm_input, hidden)    # [B, 1, D]
 
@@ -198,13 +230,14 @@ class Model(nn.Module):
             pred = self.projection(attn_out)                    # [B, 1, c_out]
             outputs.append(pred)
 
-            # 預測投影回 d_model，與 cross-attention 輸出殘差相加作為下一步輸入
+            # Project the prediction back to d_model and add it to the cross-attention
+            # output; this closed-loop latent feedback becomes the next step's LSTM input.
             pred_feedback = self.out_proj(pred)                 # [B, 1, D]
             lstm_input = attn_out + pred_feedback
 
         outputs = torch.cat(outputs, dim=1)                     # [B, pred_len, c_out]
 
-        # 5. RevIN 反標準化：還原至原始尺度
+        # 5. RevIN denormalization: map predictions back to the original scale.
         if self.revin is not None:
             outputs = self.revin(outputs, 'denorm')
 
