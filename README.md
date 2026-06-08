@@ -334,7 +334,7 @@ The registry ([`exp/exp_basic.py`](./exp/exp_basic.py)) **auto-discovers** model
 
 ---
 
-## Citation
+<!-- ## Citation
 
 If you use this code or build on the benchmark, please cite the paper:
 
@@ -347,7 +347,7 @@ If you use this code or build on the benchmark, please cite the paper:
 }
 ```
 
-> Bibliographic details (journal, volume, DOI) will be completed upon publication.
+> Bibliographic details (journal, volume, DOI) will be completed upon publication. -->
 
 ---
 
