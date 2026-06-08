@@ -1,4 +1,4 @@
-## Instructions for Using FinTSLib
+## Instructions for Using RevTransLSTM-AR
 
 Sincerely thanks to anyone interested in using this project! 
 
