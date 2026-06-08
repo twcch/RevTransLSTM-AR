@@ -1,7 +1,3 @@
-tools/
-run_batch.py
-result_long_term_forecast.xlsx
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
