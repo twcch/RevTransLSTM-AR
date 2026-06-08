@@ -332,9 +332,9 @@ python -m utils.visualization --input results/<setting>/ --output test_results/<
 
 The registry ([`exp/exp_basic.py`](./exp/exp_basic.py)) **auto-discovers** models: drop a `.py` file anywhere under [`models/`](./models/) that defines a class named `Model`, and its filename (without `.py`) becomes the `--model` string — no manual registration. This is exactly how the RevIN baselines (`revin-*.py`) and the RevTransLSTM-AR family are wired in. An unknown `--model` name raises an error listing the discovered models.
 
----
+<!-- ---
 
-<!-- ## Citation
+## Citation
 
 If you use this code or build on the benchmark, please cite the paper:
 
