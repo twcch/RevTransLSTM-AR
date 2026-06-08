@@ -1,0 +1,16 @@
+# GitHub Linguist overrides — keep the repo's language stats focused on the
+# actual research code (Python), not inherited tooling or data.
+
+# Inherited upstream Time-Series-Library shell scripts (standard-benchmark
+# reproduction, not part of this paper) — exclude from language stats.
+scripts/**            linguist-vendored
+
+# Data files are data, not code.
+dataset/**            linguist-detectable=false
+
+# Dockerfile / compose are infra, not the project language.
+Dockerfile            linguist-detectable=false
+docker-compose.yml    linguist-detectable=false
+
+# Be explicit that this is a Python project.
+*.py                  linguist-detectable=true
