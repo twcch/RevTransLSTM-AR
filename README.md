@@ -1,413 +1,371 @@
-# FinTSLib
+# RevTransLSTM-AR
 
-**FinTSLib** is a deep-learning library for time-series modeling with a focus on **financial forecasting**. Built as a fork of [thuml/Time-Series-Library (TSLib)](https://github.com/thuml/Time-Series-Library), it keeps TSLib's broad model zoo and six-task experimental framework while adding finance-oriented capabilities: bundled OHLC market datasets, reversible-instance-normalized (RevIN) baseline variants, custom autoregressive/decomposition forecasters designed for non-stationary financial series, an enhanced evaluation pipeline (R², GPU memory, timing, auto-generated publication figures), and batch sweep runners for reproducible experiments.
+**Official code for the paper**
+**_A Fair Benchmark of Deep Models for Non-Stationary Stock Price Forecasting: RevTransLSTM-AR as a Complexity Probe_**
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.5.1-EE4C2C.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![Built on Time-Series-Library](https://img.shields.io/badge/Built%20on-Time--Series--Library-8A2BE2.svg)](https://github.com/thuml/Time-Series-Library)
 
----
-
-## Key Features
-
-- **Financial focus** — bundled OHLC datasets for stocks, indices, crypto, and forex, with a `yfinance` fetch tool for adding more instruments.
-- **Six task types** — long-term / short-term forecasting, imputation, anomaly detection, classification, and zero-shot forecasting, each with a dedicated experiment pipeline.
-- **60+ models** — 41 TSLib baseline architectures (including 7 pretrained foundation models), 19 RevIN-wrapped variants, plus the author's custom financial models and their ablation/gate variants.
-- **RevIN-wrapped variants** — TSLib baselines re-packaged with Reversible Instance Normalization to handle distribution shift in non-stationary financial series.
-- **Custom financial architectures** — `RevTransLSTM-AR` (autoregressive Transformer–LSTM with cross-attention and closed-loop latent feedback) and `DeReFusion` (decomposition-residual dual-branch fusion), each with a full suite of ablation variants.
-- **Automatic model registry** — drop a `.py` file anywhere under `models/` and it is auto-discovered and lazily imported; no manual registration.
-- **Enhanced evaluation** — R² metric, GPU peak-memory profiling, train/inference timing, parameter counts, and automatically generated publication-quality figures.
-- **Batch sweep runners** — Cartesian sweeps over datasets × windows × seeds × models with MD5-keyed resume and per-experiment logging (parallel and sequential variants).
-- **`yfinance` tooling** — scripted market-data download plus descriptive-statistics and result-parsing utilities.
-- **CUDA & Apple-MPS support** — train and evaluate on NVIDIA GPUs or Apple Silicon (`--gpu_type mps`); Mamba models require Linux + CUDA (see [Installation](#installation)).
+This repository contains everything needed to reproduce the experiments in the paper: the proposed **RevTransLSTM-AR** model and its ablation variants, the **RevIN-wrapped baseline models** they are compared against, the **daily OHLC stock/index datasets**, and the **shared training and evaluation pipeline** that makes the comparison fair.
 
 ---
 
-## Supported Tasks
+## Table of Contents
 
-The active task is selected with the `--task_name` flag and dispatched in `run.py`.
+- [Overview](#overview)
+- [What makes the benchmark _fair_](#what-makes-the-benchmark-fair)
+- [RevTransLSTM-AR — the complexity probe](#revtranslstm-ar--the-complexity-probe)
+- [Benchmark models](#benchmark-models)
+- [Datasets](#datasets)
+- [Repository structure](#repository-structure)
+- [Installation](#installation)
+- [Reproducing the benchmark](#reproducing-the-benchmark)
+- [Evaluation and outputs](#evaluation-and-outputs)
+- [Adding a model](#adding-a-model)
+- [Citation](#citation)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+- [Contributing](#contributing)
 
-| Task | `task_name` flag | Experiment module |
+---
+
+## Overview
+
+Daily stock and index prices are strongly **non-stationary**: their mean and variance drift over time and the raw `Close` series carries a unit root (see [`utils/ADFtest.py`](./utils/ADFtest.py)). A common reflex is to throw progressively heavier architectures at the problem — deep Transformers, hybrid recurrent–attention stacks, autoregressive decoders, learnable feedback. This paper asks a simpler question:
+
+> **On non-stationary stock prices, does added architectural complexity actually buy forecasting accuracy — once every model is given the same fair chance?**
+
+To answer it, the repo provides two things:
+
+1. A **fair benchmark** — a single data pipeline, normalization scheme, training protocol, and metric set shared by every model, so differences in results reflect the **backbone**, not the harness.
+2. **RevTransLSTM-AR as a complexity probe** — a deliberately complex forecaster (Transformer encoder → autoregressive LSTM decoder → cross-attention → closed-loop latent feedback, all wrapped in RevIN) shipped with a full set of **ablation variants** that remove one component at a time. Sliding RevTransLSTM-AR down its own ablation ladder, and comparing it against simpler RevIN baselines, isolates how much each layer of complexity contributes.
+
+The repository is a focused fork of [thuml/Time-Series-Library (TSLib)](https://github.com/thuml/Time-Series-Library): it keeps TSLib's experiment harness and reuses its layer library, but trims the model set down to exactly what the paper studies.
+
+---
+
+## What makes the benchmark _fair_
+
+Every model in this repository is evaluated under an **identical protocol**, so accuracy differences are attributable to the architecture and not to incidental advantages.
+
+| Dimension | Shared setting |
+|---|---|
+| **Data loader** | `Dataset_Custom` ([`data_provider/data_loader.py`](./data_provider/data_loader.py)) for all models |
+| **Splits** | Chronological **70% / 10% / 20%** train / validation / test; validation and test windows are extended back by `seq_len` for lookback context |
+| **Scaling** | `StandardScaler` **fit on the training split only**, then applied to all splits |
+| **Normalization** | **RevIN** (Reversible Instance Normalization) applied to _every_ model — the proposed model and all baselines — so the comparison isolates backbone complexity rather than the normalization scheme |
+| **Inputs / target** | `--features MS`: all four OHLC columns as input, single `Close` target (`--target Close`) |
+| **Training** | Adam optimizer, MSE loss, early stopping on validation loss (`--patience`), learning-rate schedule (`--lradj`) |
+| **Seeds** | Controlled by `--rand_seed` (default `2021`); the seed is embedded in each run's `setting` string so multi-seed runs are tracked separately |
+| **Metrics** | MAE, MSE, RMSE, MAPE, MSPE, R² (optionally DTW), plus parameter count, train time, inference ms/sample, and GPU peak memory |
+
+> **Reproducibility note.** `run.py` seeds Python `random`, NumPy, and PyTorch (`torch.manual_seed`). It does **not** set `torch.backends.cudnn.deterministic`, so results on CUDA are reproducible up to cuDNN non-determinism. Run several seeds (e.g. `2020`–`2024`) and report mean ± std, as the paper does.
+
+---
+
+## RevTransLSTM-AR — the complexity probe
+
+**File:** [`models/revtranslstm_ar/RevTransLSTM-AR.py`](./models/revtranslstm_ar/RevTransLSTM-AR.py) · **`--model RevTransLSTM-AR`**
+
+RevTransLSTM-AR is an autoregressive encoder–decoder. A Transformer encoder builds a global memory of the input window; an LSTM then decodes the horizon **one step at a time**, querying that memory through cross-attention and feeding each prediction back into the latent state through a learnable projection.
+
+**Forward pass** (`B` = batch, `D` = `d_model`):
+
+```
+x_enc [B, seq_len, 4]                      # OHLC input window
+  │
+  ├─ RevIN(norm)                           # per-instance normalize (stats from x_enc; reused for x_dec)
+  ├─ DataEmbedding → Transformer Encoder ──► enc_out [B, seq_len, D]   (cross-attention memory)
+  │
+  └─ decoder seed = last embedded label-token step  ──► lstm_input [B, 1, D]
+        repeat for t = 1 … pred_len:
+            lstm_out, hidden = LSTM(lstm_input, hidden)          # [B, 1, D]
+            attn_out         = CrossAttention(q=lstm_out,        # query  = LSTM state
+                                              k=v=enc_out)        # memory = encoder output
+            pred_t           = Linear(D → c_out)(attn_out)       # [B, 1, c_out]   ← collected
+            feedback         = Linear(c_out → D)(pred_t)         # closed-loop AR latent feedback
+            lstm_input       = attn_out + feedback               # residual-add → next step
+  │
+  ├─ concat predictions ──► [B, pred_len, c_out]
+  └─ RevIN(denorm) ──────► forecast in original price scale
+```
+
+The two design choices that define the model — and that the ablations probe — are:
+
+- **Cross-attention decoding:** the LSTM does not decode in isolation; at every step it attends back to the full encoder memory.
+- **Closed-loop autoregressive feedback:** each prediction is projected back into the `d_model` latent space (a learnable `Linear(c_out, d_model)`) and **residual-added** to the cross-attention output to form the next LSTM input — a learnable feedback loop rather than open-loop teacher forcing.
+
+RevIN here is an **inline** Reversible Instance Normalization (per-sample, per-channel normalization over the time axis with detached, invertible statistics and affine parameters); a standalone equivalent also lives at [`layers/RevIN.py`](./layers/RevIN.py) and is the one used by all baselines.
+
+### Ablation variants
+
+**Folder:** [`models/revtranslstm_ar/ablation_variant/`](./models/revtranslstm_ar/ablation_variant/). Each is a valid `--model` name (filename without `.py`).
+
+| `--model` | Removes / changes | Resulting behavior |
 |---|---|---|
-| Long-term forecasting | `long_term_forecast` | `exp/exp_long_term_forecasting.py` |
-| Short-term forecasting | `short_term_forecast` | `exp/exp_short_term_forecasting.py` |
-| Imputation | `imputation` | `exp/exp_imputation.py` |
-| Anomaly detection | `anomaly_detection` | `exp/exp_anomaly_detection.py` |
-| Classification | `classification` | `exp/exp_classification.py` |
-| Zero-shot forecasting | `zero_shot_forecast` | `exp/exp_zero_shot_forecasting.py` |
-
-> An unrecognized `--task_name` falls back to the long-term forecasting pipeline.
+| `RevTransLSTM-AR-woarfeedback` | Closed-loop AR feedback (`out_proj`) | Open-loop decode: `lstm_input = attn_out`; RevIN + cross-attention kept |
+| `RevTransLSTM-AR-wocrossattention` | Cross-attention | `attn_out = lstm_out`; encoder runs but its memory is unused; feedback kept |
+| `RevTransLSTM-AR-wolearnablefeedback` | _Learnability_ of the feedback projection | Feedback kept but fixed: `Linear` replaced by a constant all-ones buffer |
+| `RevTransLSTM-AR-worevin` | RevIN | Raw-scale I/O, no distribution-shift correction; everything else kept |
+| `RevTransLSTM-AR-worevinandarfeedback` | RevIN **+** AR feedback | Raw-scale, open-loop; encoder + cross-attention kept |
+| `RevTransLSTM-AR-worevinandarfeedbackandcrossattention` | RevIN **+** AR feedback **+** cross-attention | Degenerate LSTM-only baseline (encoder unused, no feedback, no denorm) |
 
 ---
 
-## Model Zoo
+## Benchmark models
 
-Models live under `models/`, split into three families. Any unrecognized model name surfaces a `ValueError` listing all available models. Recommended per-model, per-paper hyperparameters are catalogued in **[`models/tslib_models/PAPER_RECOMMENDED_PARAMS.md`](./models/tslib_models/PAPER_RECOMMENDED_PARAMS.md)**.
+The comparison set is **eight RevIN-wrapped baselines** in [`models/`](./models/). Every baseline shares the same RevIN normalize/denormalize wrapping as RevTransLSTM-AR, so they sit on a clean **complexity ladder** that isolates backbone capacity:
 
-### (a) TSLib Baselines — `models/tslib_models/`
-
-41 baseline model files, organized by primary architecture. A few models are hybrids and touch more than one category.
-
-<details>
-<summary><b>Transformer-based</b></summary>
-
-Autoformer, Crossformer, ETSformer, FEDformer, Informer, MultiPatchFormer, Nonstationary_Transformer, PAttn, PatchTST, Pyraformer, Reformer, TemporalFusionTransformer, TimeXer, Transformer, iTransformer, KANAD (KAN-based anomaly-detection model).
-
-</details>
-
-<details>
-<summary><b>Linear / MLP</b></summary>
-
-DLinear, TiDE, LightTS, TSMixer, TimeMixer, FiLM, WPMixer. *(FiLM and WPMixer also use frequency/wavelet components.)*
-
-</details>
-
-<details>
-<summary><b>CNN / TCN</b></summary>
-
-TimesNet, MICN, SCINet.
-
-</details>
-
-<details>
-<summary><b>RNN</b></summary>
-
-SegRNN.
-
-</details>
-
-<details>
-<summary><b>Frequency / Decomposition</b></summary>
-
-FreTS, TimeFilter, Koopa, MSGNet. *(FiLM and WPMixer overlap here.)*
-
-</details>
-
-<details>
-<summary><b>State-space (Mamba)</b></summary>
-
-Mamba, MambaSimple, MambaSingleLayer. *(Require Linux + CUDA — see [Installation](#installation).)*
-
-</details>
-
-### (b) Pretrained Foundation Models — `models/tslib_models/`
-
-Used primarily through the `zero_shot_forecast` task.
-
-| Model | File |
-|---|---|
-| Chronos | `models/tslib_models/Chronos.py` |
-| Chronos2 | `models/tslib_models/Chronos2.py` |
-| Moirai | `models/tslib_models/Moirai.py` |
-| TimesFM | `models/tslib_models/TimesFM.py` |
-| TiRex | `models/tslib_models/TiRex.py` |
-| Sundial | `models/tslib_models/Sundial.py` |
-| TimeMoE | `models/tslib_models/TimeMoE.py` |
-
-### (c) RevIN-Wrapped Models — `models/revin_models/`
-
-19 TSLib baselines each wrapped with Reversible Instance Normalization (`layers/RevIN.py`), which normalizes each input instance before encoding and denormalizes after decoding to help models cope with distribution shift in non-stationary financial series. All 19 import the shared `RevIN` layer.
-
-<details>
-<summary><b>All 19 RevIN-wrapped variants</b></summary>
-
-**Transformer-family:** `revin-Transformer.py`, `revin-iTransformer.py`, `revin-Informer.py`, `revin-Reformer.py`, `revin-Autoformer.py`, `revin-FEDformer.py`, `revin-ETSformer.py`, `revin-TimesNet.py`, `revin-PatchTST.py`, `revin-PAttn.py`, `revin-TransformerEncoder.py`
-
-**Linear / MLP-family:** `revin-DLinear.py`, `revin-TiDE.py`, `revin-LightTS.py`, `revin-TSMixer.py`
-
-**RNN-family:** `revin-LSTM.py`, `revin-GRU.py`, `revin-Seq2SeqLSTM.py`
-
-**Hybrid:** `revin-TransformerLSTM.py`
-
-</details>
-
-### (d) Custom Financial Models — `models/my_models/`
-
-The author's purpose-built architectures for financial forecasting.
-
-#### RevTransLSTM-AR — `models/my_models/revtranslstm_ar/RevTransLSTM-AR.py`
-
-An autoregressive encoder–decoder forecaster. A Transformer encoder produces a global memory; an LSTM decodes step-by-step over `pred_len`, each step querying the encoder memory via cross-attention. It applies RevIN to encoder/decoder inputs and uses a **closed-loop latent feedback** loop: each step's prediction is projected back into latent space (a learnable `Linear(c_out, d_model)`) and residual-added to the cross-attention output to form the next LSTM input.
-
-<details>
-<summary><b>RevTransLSTM-AR ablation variants</b> (<code>revtranslstm_ar/ablation_variant/</code>)</summary>
-
-| Variant | What it removes / changes |
-|---|---|
-| `RevTransLSTM-AR-woarfeedback.py` | Removes AR feedback; decoding is open-loop (feeds `attn_out` directly as next LSTM input). |
-| `RevTransLSTM-AR-wocrossattention.py` | Removes cross-attention; decoder uses `lstm_out` as context, encoder output unused. |
-| `RevTransLSTM-AR-wolearnablefeedback.py` | Keeps feedback structure but replaces the learnable projection with a fixed all-ones buffer. |
-| `RevTransLSTM-AR-worevin.py` | Removes RevIN; inputs not instance-normalized, outputs not de-normalized. |
-| `RevTransLSTM-AR-worevinandarfeedback.py` | Removes both RevIN and AR feedback (open-loop). |
-| `RevTransLSTM-AR-worevinandarfeedbackandcrossattention.py` | Removes RevIN, AR feedback, and cross-attention (degraded control baseline). |
-
-</details>
-
-#### DeReFusion — `models/my_models/derefusion/DeReFusion.py`
-
-A decomposition-residual dual-branch fusion model. A DLinear branch (seasonal-trend decomposition + independent linear projection) produces the base forecast; a hybrid residual branch (per-feature projection → LSTM → Transformer encoder → projection) produces a residual; the two are combined by direct additive fusion (`base + residual`), wrapped in RevIN normalize/denormalize.
-
-<details>
-<summary><b>DeReFusion ablation variants</b> (<code>derefusion/ablation_variant/</code>)</summary>
-
-| Variant | What it tests |
-|---|---|
-| `DeReFusion-woDy.py` | DLinear base branch only (no residual branch / fusion). |
-| `DeReFusion-woLSTM.py` | DLinear + Transformer-only residual branch + direct add. |
-| `DeReFusion-woTransformer.py` | DLinear + LSTM-only residual branch + direct add. |
-
-</details>
-
-<details>
-<summary><b>DeReFusion gate variants</b> (<code>derefusion/gate_variant/</code>)</summary>
-
-These replace direct additive fusion with a gated fusion `(1 - gate) * base + gate * residual`.
-
-| Variant | Gating mechanism |
-|---|---|
-| `DeReFusion-gatev1-volatilityaware.py` | **VolatilityAwareGate** — gate driven by the raw input's per-channel std (computed before RevIN). |
-| `DeReFusion-gatev2-learnable.py` | **LearnableGate** — per-channel learnable scalar `gate = sigmoid(alpha)`; static across samples/timesteps. |
-| `DeReFusion-gatev3-inputconditioned.py` | **InputConditionedGate** — sample-adaptive bottleneck gate producing per-sample/per-channel/per-timestep weights. |
-
-</details>
-
-<details>
-<summary><b>Other custom models</b> (top level of <code>models/my_models/</code>)</summary>
-
-- **`TransformerLSTM.py`** — encoder–decoder: a Transformer encoder builds memory from `x_enc`; an LSTM decoder is initialized with the encoder's last-step memory as `h_0` and decodes `x_dec`; a linear Seq2Seq head outputs predictions.
-- **`LSTMAttention.py`** — backbone-neck-head: a multi-layer LSTM backbone, a multi-head self-attention neck, and a prediction head mapping the last step to `pred_len * c_out`.
-
-</details>
-
----
-
-## Financial Datasets
-
-Two bundled collections under `dataset/`, each holding per-instrument daily OHLC CSVs (one file per ticker).
-
-### `dataset/2013_2023/` — 2013-12-02 → 2023-12-29 (8 instruments)
-
-| Type | Instruments |
-|---|---|
-| Stocks | AAPL (Apple), JPM (JPMorgan), TSMC (Taiwan Semiconductor) |
-| Indices | GSPC (S&P 500), NDX (Nasdaq-100), SOX (PHLX Semiconductor), FTSE (FTSE 100), N225 (Nikkei 225) |
-
-### `dataset/2016_2025/` — 2016-01-01 → 2025-12-31 (10 instruments)
-
-| Type | Instruments |
-|---|---|
-| Stocks | BABA (Alibaba), NVO (Novo Nordisk), TM (Toyota) |
-| Indices | GSPC (S&P 500), DJI (Dow Jones), SOX (PHLX Semiconductor) |
-| Crypto | BTCUSD (Bitcoin), ETHUSD (Ethereum) |
-| Forex | EURUSD (Euro/USD), USDJPY (USD/Yen) |
-
-### CSV Schema
-
-All files share an identical header: `date,Open,High,Low,Close`.
-
-- `date` is `YYYY-MM-DD`; values are split/adjusted floats. **OHLC only — there is no Volume column.**
-- Crypto files include weekend dates; equities, indices, and forex follow business-day calendars (weekend gaps), which is why row counts differ across instruments.
-
-### Experiment Configuration
-
-Financial CSVs are loaded through the `custom` data provider (`Dataset_Custom`). The batch runner wires them up as:
-
-| Setting | Value | Meaning |
+| Complexity tier | `--model` | Backbone |
 |---|---|---|
-| `--data` | `custom` | use `Dataset_Custom` loader |
-| `--features` | `MS` | multivariate input (all OHLC columns), single target output |
-| `--target` | `Close` | predict the `Close` price (moved to the last column internally) |
-| `--freq` | `b` | business-day frequency for temporal embedding |
+| **Linear / MLP** | `revin-DLinear` | Series decomposition + per-component linear maps |
+| | `revin-TiDE` | Residual-MLP (dense) encoder–decoder |
+| **Recurrent (RNN)** | `revin-LSTM` | LSTM encoder → direct multi-step projection |
+| | `revin-GRU` | GRU encoder → direct multi-step projection |
+| | `revin-Seq2SeqLSTM` | LSTM encoder → autoregressive LSTM decoder |
+| **Transformer** | `revin-Transformer` | Vanilla encoder–decoder, full attention |
+| | `revin-Informer` | ProbSparse attention + distilling |
+| | `revin-Autoformer` | Decomposition + AutoCorrelation attention |
 
-> Note: `run.py` defaults differ (`--features M`, `--target OT`, `--freq h`, `--data ETTh1`), so the financial configuration is supplied explicitly rather than relying on the defaults.
-
-### Fetching More Data
-
-`tools/fetch_yfinance_data.py` downloads additional instruments via `yfinance`: it calls `yf.download(ticker, start=..., end=...)`, drops the multi-index Ticker level, renames `Date` → `date`, and slices exactly `["date", "Open", "High", "Low", "Close"]` before writing to `dataset/` — producing files that match the bundled schema. The ticker and date range are edited directly in the script.
+> Names are case-sensitive and the hyphen is part of the model name (e.g. `--model revin-LSTM`). All eight import the shared [`layers/RevIN.py`](./layers/RevIN.py).
 
 ---
 
-## Repository Structure
+## Datasets
+
+Eight daily **OHLC** series under [`dataset/`](./dataset/), spanning **2013-12-02 → 2023-12-29**. All files share the header `date,Open,High,Low,Close` (`date` is `YYYY-MM-DD`; values are split/adjusted floats). **There is no Volume column.** Row counts differ because each market follows its own trading calendar.
+
+| Ticker | Instrument | Type | Rows |
+|---|---|---|---|
+| [AAPL](./dataset/AAPL-2013-2023.csv) | Apple Inc. | Stock | 2537 |
+| [JPM](./dataset/JPM-2013-2023.csv) | JPMorgan Chase | Stock | 2537 |
+| [TSMC](./dataset/TSMC-2013-2023.csv) | Taiwan Semiconductor | Stock | 2462 |
+| [GSPC](./dataset/GSPC-2013-2023.csv) | S&P 500 | Index | 2537 |
+| [NDX](./dataset/NDX-2013-2023.csv) | Nasdaq-100 | Index | 2537 |
+| [SOX](./dataset/SOX-2013-2023.csv) | PHLX Semiconductor | Index | 2537 |
+| [FTSE](./dataset/FTSE-2013-2023.csv) | FTSE 100 | Index | 2544 |
+| [N225](./dataset/N225-2013-2023.csv) | Nikkei 225 | Index | 2464 |
+
+**Non-stationarity.** [`utils/ADFtest.py`](./utils/ADFtest.py) runs the Augmented Dickey–Fuller test (via `statsmodels` and `arch`) to quantify the unit-root behavior of each series — the empirical motivation for applying RevIN to every model in the benchmark.
+
+**Loading convention.** Stock CSVs are read through the `custom` provider with multivariate-input / single-target settings:
+
+| Flag | Value | Meaning |
+|---|---|---|
+| `--data` | `custom` | use `Dataset_Custom` |
+| `--features` | `MS` | all OHLC columns in, single target out |
+| `--target` | `Close` | predict `Close` (moved to the last column internally) |
+| `--freq` | `b` | business-day frequency for the temporal embedding |
+| `--enc_in` / `--dec_in` / `--c_out` | `4` / `4` / `1` | 4 OHLC inputs, 1 target output |
+
+> `run.py` inherits TSLib's defaults (`--data ETTh1`, `--features M`, `--target OT`, `--freq h`), so the financial configuration must be passed explicitly, as shown below.
+
+---
+
+## Repository structure
 
 ```text
-FinTSLib/
-├── run.py                              # Main entry point — CLI, seeding, task dispatch
-├── run_batch_long_term_forecast.py     # Parallel batch sweep runner (long-term forecast)
-├── run_batch_zero_shot_forecast.py     # Sequential batch sweep runner (zero-shot forecast)
+RevTransLSTM-AR/
+├── run.py                       # Single entry point — CLI, seeding, device & task dispatch
 ├── models/
-│   ├── tslib_models/                   # 41 TSLib baselines + 7 foundation models
-│   │   └── PAPER_RECOMMENDED_PARAMS.md # Per-model recommended hyperparameters
-│   ├── revin_models/                   # 19 RevIN-wrapped baseline variants
-│   └── my_models/                      # Custom financial models + ablation/gate variants
-│       ├── revtranslstm_ar/            # RevTransLSTM-AR + ablation variants
-│       └── derefusion/                 # DeReFusion + ablation & gate variants
-├── exp/                                # 6 task pipelines (exp_*.py) + Exp_Basic registry
-├── layers/                             # Reusable layers, incl. RevIN.py
-├── data_provider/                      # data_factory.py, data_loader.py (Dataset_Custom, etc.)
-├── dataset/
-│   ├── 2013_2023/                      # 8-instrument OHLC CSVs (2013–2023)
-│   └── 2016_2025/                      # 10-instrument OHLC CSVs (2016–2025)
-├── utils/                              # metrics.py, visualization.py, tools.py
-├── tools/                              # fetch_yfinance_data.py, descriptive_stats.py, parse_result_to_xlsx.py
-├── scripts/                            # TSLib-style reproduction shell scripts (per task)
-├── requirements/                       # 4-step ordered install files (reqs_1..4.txt)
-├── Dockerfile                          # CUDA 12.1 / PyTorch 2.5.1 build
-└── docker-compose.yml                  # dev_tslib service with GPU passthrough
+│   ├── revin-Autoformer.py      # 8 RevIN-wrapped baselines (revin-*.py)
+│   ├── revin-DLinear.py
+│   ├── revin-GRU.py
+│   ├── revin-Informer.py
+│   ├── revin-LSTM.py
+│   ├── revin-Seq2SeqLSTM.py
+│   ├── revin-TiDE.py
+│   ├── revin-Transformer.py
+│   └── revtranslstm_ar/
+│       ├── RevTransLSTM-AR.py            # proposed model
+│       └── ablation_variant/            # 6 ablation variants
+├── exp/                         # Task pipelines + Exp_Basic model registry
+│   ├── exp_basic.py             # auto-discovers models under models/
+│   └── exp_long_term_forecasting.py     # the pipeline used by the paper
+├── layers/                      # Reusable layers (RevIN, attention, embeddings, …)
+├── data_provider/               # data_factory.py, data_loader.py (Dataset_Custom)
+├── dataset/                     # 8 OHLC CSVs (2013–2023)
+├── utils/                       # metrics.py, visualization.py, ADFtest.py, tools.py
+├── scripts/                     # Inherited TSLib reproduction scripts (standard benchmarks — see note)
+├── requirements/                # Ordered install files reqs_1..4.txt
+├── Dockerfile                   # CUDA 12.1 / PyTorch 2.5.1 image
+└── docker-compose.yml           # dev service with GPU passthrough
 ```
+
+> **Note on `scripts/`.** These shell scripts are inherited from upstream TSLib and target the _standard_ academic benchmarks (ETT, ECL, Weather, M4, anomaly/classification datasets). They are **not** the financial experiments of this paper — the stock-price benchmark is run through `run.py` as documented below.
 
 ---
 
 ## Installation
 
-Recommended Python: **3.11**. Install proceeds in four ordered steps from `requirements/`.
+**Recommended Python: 3.11.** Dependencies are split into four ordered files in [`requirements/`](./requirements/).
+
+### Minimal install (everything the paper needs)
+
+The published models depend only on PyTorch and the standard scientific/attention stack — **not** on the Mamba or foundation-model libraries that the upstream stack also lists.
 
 ```bash
-# 1. PyTorch + CUDA 12.1 build (torch==2.5.1)
+# 1. PyTorch (CUDA 12.1 build — torch==2.5.1)
 pip install -r requirements/reqs_1.txt
 
-# 2. Core deps + foundation-model libraries
-#    (einops, scipy, scikit-learn, pandas, sktime, transformers, huggingface_hub,
-#     chronos-forecasting, tirex-ts, timesfm, gluonts, lightning, jax, ...)
+# 2. Core scientific + attention stack
+#    (numpy, scipy, scikit-learn, pandas, matplotlib, einops, reformer-pytorch,
+#     sktime, sympy, PyWavelets, tqdm, …)
 pip install -r requirements/reqs_2.txt
-
-# 3. Mamba state-space backend (pinned wheel — see note below)
-pip install -r requirements/reqs_3.txt
-
-# 4. Remaining FinTSLib deps (uni2ts, reformer_pytorch, einops, sktime, patool)
-pip install -r requirements/reqs_4.txt
 ```
 
-> **Platform note — Mamba is Linux + CUDA only.** Step 3 installs `mamba_ssm` from a pinned wheel
-> (`mamba_ssm-2.2.6.post3+cu12torch2.5cxx11abiFALSE-cp311-cp311-linux_x86_64.whl`), which is a
-> CUDA 12 / torch 2.5 / cp311 / `linux_x86_64`-only build. The **Mamba models therefore require
-> Linux + CUDA and Python 3.11**, and step 3 is not installable on macOS / CPU. Every other model
-> runs on either **CUDA** or **Apple MPS** (`--gpu_type mps`); skip step 3 if you do not need Mamba.
+> **CPU / Apple Silicon:** `requirements/reqs_1.txt` pins the CUDA 12.1 wheel. If you do not have an NVIDIA GPU, install the matching CPU or MPS build of `torch==2.5.1` from [pytorch.org](https://pytorch.org/get-started/locally/) instead of step 1, then run step 2.
 
-### Docker
+### Optional extras (not required by this repo's models)
 
-A reproducible CUDA environment is provided.
+`requirements/reqs_3.txt` and `requirements/reqs_4.txt` install the Mamba state-space backend and the foundation-model libraries (Chronos, TimesFM, TiRex, Moirai/uni2ts). **None of these are imported by the published model set**, so you can skip them.
 
 ```bash
-docker compose up -d --build      # build & start the dev_tslib service
+pip install -r requirements/reqs_3.txt          # mamba_ssm — Linux x86_64 + CUDA 12 + Python 3.11 + torch 2.5 ONLY
+pip install -r requirements/reqs_4.txt --no-deps # uni2ts and friends
+```
+
+> `reqs_3.txt` pins a `mamba_ssm` wheel built for `cu12 / torch2.5 / cp311 / linux_x86_64` only; it will not install on macOS, Windows, ARM, or other Python versions.
+
+### Docker (optional)
+
+A CUDA environment is provided for full-stack reproduction:
+
+```bash
+# The Dockerfile installs from a single consolidated requirements.txt:
+cat requirements/reqs_*.txt > requirements.txt
+docker compose up -d --build
 docker compose exec dev_tslib bash
 ```
 
-The image is based on `pytorch/pytorch:2.5.1-cuda12.1-cudnn9-devel`, installs the pinned Mamba wheel and `uni2ts`, and runs with GPU passthrough (`NVIDIA_VISIBLE_DEVICES=all`), `shm_size: 8gb`, and a `/workspace` volume.
+The image builds on `pytorch/pytorch:2.5.1-cuda12.1-cudnn9-devel`, runs with GPU passthrough (`NVIDIA_VISIBLE_DEVICES=all`), `shm_size: 8gb`, and a `/workspace` volume. It targets the _complete_ stack including the optional Mamba/foundation dependencies.
 
 ---
 
-## Quick Start
+## Reproducing the benchmark
 
-### (a) Long-term forecast on a bundled stock
+All experiments run through [`run.py`](./run.py), which seeds the RNGs, selects the device, and dispatches to the long-term-forecasting pipeline.
 
-Forecast Apple's `Close` price from OHLC inputs using DLinear:
+### Train and evaluate the proposed model
 
 ```bash
 python run.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --model_id AAPL_96_24 \
-  --model DLinear \
+  --model RevTransLSTM-AR \
   --data custom \
-  --root_path ./dataset/2013_2023/ \
+  --root_path ./dataset/ \
   --data_path AAPL-2013-2023.csv \
-  --features MS \
-  --target Close \
-  --freq b \
-  --seq_len 96 \
-  --label_len 48 \
-  --pred_len 24 \
+  --features MS --target Close --freq b \
+  --seq_len 96 --label_len 48 --pred_len 24 \
   --enc_in 4 --dec_in 4 --c_out 1 \
+  --d_model 512 --n_heads 8 --e_layers 2 --d_layers 1 \
+  --train_epochs 10 --batch_size 32 --learning_rate 0.0001 --patience 3 \
   --rand_seed 2021
 ```
 
-> On Apple Silicon, add `--gpu_type mps`. (Channel dims are `4` because the CSVs carry four OHLC columns.)
+### Run a baseline or an ablation
 
-### (b) Zero-shot foundation-model forecast
-
-Run a pretrained foundation model with no training (`--is_training 0`):
+Swap `--model` for any name from the [benchmark set](#benchmark-models) or [ablation table](#ablation-variants); every other flag stays the same:
 
 ```bash
-python run.py \
-  --task_name zero_shot_forecast \
-  --is_training 0 \
-  --model_id BTCUSD_zeroshot \
-  --model TimesFM \
-  --data custom \
-  --root_path ./dataset/2016_2025/ \
-  --data_path BTCUSD-2016-2025.csv \
-  --features MS \
-  --target Close \
-  --freq b \
-  --seq_len 96 \
-  --label_len 48 \
-  --pred_len 7
+python run.py --model revin-LSTM        ... # an RNN baseline
+python run.py --model revin-Transformer ... # a Transformer baseline
+python run.py --model RevTransLSTM-AR-woarfeedback ... # an ablation
 ```
 
-> Swap `--model TimesFM` for `Chronos` or `Moirai` to try other foundation models.
+### Device selection
 
-### (c) Batch sweep runner
+- **CUDA** is auto-detected and used by default.
+- **Apple Silicon:** add `--gpu_type mps` (this also ensures MPS memory is cleared correctly).
+- **CPU:** add `--no_use_gpu`.
 
-Run a full Cartesian sweep (datasets × windows × seeds × models) with resume and per-experiment logging:
+### Full sweep
 
-```bash
-# Parallel long-term forecast sweep (MAX_PARALLEL=6, seeds 2020–2024)
-python run_batch_long_term_forecast.py
-
-# Sequential zero-shot foundation-model sweep (TimesFM / Chronos / Moirai)
-python run_batch_zero_shot_forecast.py
-```
-
-Both runners shell out to `run.py`, key completed experiments by an MD5 of the command, record progress in `run_batch_progress.log` and failures in `run_batch_failed.log`, and resume where they left off. The long-term runner writes per-experiment stdout/stderr into `run_batch_logs/`; the zero-shot runner streams logs live. The default model list and sweep grids are edited at the top of each script.
+The paper reports results over **all 8 instruments × multiple forecast horizons × several seeds**. Reproduce it by looping the command above over `--data_path`, `--pred_len`, and `--rand_seed` (e.g. seeds `2020`–`2024`), then aggregating the per-run metric lines (see below). Each run is keyed by a unique `setting` string, so repeated runs never collide.
 
 ---
 
-## Outputs & Evaluation
+## Evaluation and outputs
 
-The forecasting pipeline reports an extended set of metrics and diagnostics beyond upstream TSLib.
+The long-term-forecasting pipeline ([`exp/exp_long_term_forecasting.py`](./exp/exp_long_term_forecasting.py)) reports an extended set of metrics and diagnostics.
 
-**Metrics** (`utils/metrics.py`): MAE, MSE, RMSE, MAPE, MSPE, **R²**, and optionally **DTW** (enable with `--use_dtw`; off by default as it is time-consuming).
+**Metrics** ([`utils/metrics.py`](./utils/metrics.py)): `MAE, MSE, RMSE, MAPE, MSPE, R²` — and optionally **DTW** with `--use_dtw` (off by default; time-consuming).
 
-**Diagnostics:**
-- **GPU peak-memory profiling** — `gpu_mem_peak_mb` via `torch.cuda.max_memory_allocated`.
-- **Train / inference timing** — training wall time and per-sample inference speed (`inference_speed_ms`, ms/sample, guarded with `torch.cuda.synchronize()`).
-- **Parameter counting** — total and trainable parameter counts.
+**Diagnostics** (printed and appended to the result log):
+- **GPU peak memory** — `gpu_mem_peak_mb` via `torch.cuda.max_memory_allocated` (CUDA only).
+- **Training wall time** and **inference speed** — `inference_speed_ms` (ms/sample, guarded by `torch.cuda.synchronize()`).
+- **Parameter counts** — total and trainable.
 
-**Auto-generated figures** (`utils/visualization.py`, 300 DPI, journal serif style), written to `test_results/<setting>/`:
+**Output layout** (relative to the working directory; all are git-ignored):
 
-| Figure | Content |
+| Path | Contents |
 |---|---|
-| `fig_prediction_curves` | N sample ground-truth vs. prediction windows with error band |
-| `fig_error_analysis` | MSE-per-horizon-step bars + error-distribution histogram |
-| `fig_metrics_radar` | Radar over MAE / MSE / RMSE / MAPE / MSPE / R² |
-| `fig_error_heatmap` | Absolute-error heatmap (sample × horizon) |
-| `fig_pred_true` | Continuous ground-truth vs. prediction curve |
-| `fig_dashboard` | 4-panel summary (curve, MSE/horizon, error histogram, metrics caption) |
+| `results/<setting>/` | `pred.npy`, `true.npy`, `metrics.npy` (the 6 core metrics) |
+| `test_results/<setting>/` | auto-generated figures + per-window preview PDFs |
+| `checkpoints/<setting>/checkpoint.pth` | best model by validation loss |
+| `result_long_term_forecast.txt` | appended one-line summary per run (all metrics + diagnostics) |
 
-Figures can also be regenerated standalone via `python -m utils.visualization --input ... --output ...`. The legacy per-window `visual()` PDF dump is still emitted on every 20th test batch.
+**Publication figures** ([`utils/visualization.py`](./utils/visualization.py), 300 DPI, serif/journal style, PNG):
 
-**Result layout:**
-- `results/<setting>/` — `pred.npy`, `true.npy`, `metrics.npy`.
-- `result_long_term_forecast.txt` — appended human-readable summary (metrics, params, timing, GPU memory).
-- `test_results/<setting>/` — the auto-generated figures above.
-- `checkpoints/<setting>/` — trained model checkpoints.
+| File | Content |
+|---|---|
+| `fig_prediction_curves.png` | Sample ground-truth vs. prediction windows with error band |
+| `fig_error_analysis.png` | MSE-per-horizon-step bars + error-distribution histogram |
+| `fig_metrics_radar.png` | Radar over MAE / MSE / RMSE / MAPE / MSPE / R² |
+| `fig_error_heatmap.png` | Absolute-error heatmap (sample × horizon) |
+| `fig_pred_true.png` | Continuous ground-truth vs. prediction curve |
+| `fig_dashboard.png` | 4-panel summary |
 
-The result text file can be parsed into a spreadsheet with `tools/parse_result_to_xlsx.py`, which produces a `raw` sheet (one row per experiment) and a `summary` sheet (mean/std aggregated over seeds).
+Figures can be regenerated standalone from saved arrays:
+
+```bash
+python -m utils.visualization --input results/<setting>/ --output test_results/<setting>/
+```
+
+---
+
+## Adding a model
+
+The registry ([`exp/exp_basic.py`](./exp/exp_basic.py)) **auto-discovers** models: drop a `.py` file anywhere under [`models/`](./models/) that defines a class named `Model`, and its filename (without `.py`) becomes the `--model` string — no manual registration. This is exactly how the RevIN baselines (`revin-*.py`) and the RevTransLSTM-AR family are wired in. An unknown `--model` name raises an error listing the discovered models.
+
+---
+
+## Citation
+
+If you use this code or build on the benchmark, please cite the paper:
+
+```bibtex
+@article{hsieh2026revtranslstmar,
+  title   = {A Fair Benchmark of Deep Models for Non-Stationary Stock Price
+             Forecasting: RevTransLSTM-AR as a Complexity Probe},
+  author  = {Hsieh, Chih-Chien},
+  year    = {2026}
+}
+```
+
+> Bibliographic details (journal, volume, DOI) will be completed upon publication.
 
 ---
 
 ## Acknowledgements
 
-FinTSLib is built on the excellent [Time-Series-Library (TSLib)](https://github.com/thuml/Time-Series-Library) by THUML, from which it was forked on **2026-02-24**. It inherits TSLib's model implementations, six-task experimental framework, and reproduction scripts, and extends them with finance-specific datasets, models, evaluation, and tooling. Foundation-model support builds on the upstream Chronos, Moirai (uni2ts), TimesFM, TiRex, Sundial, and TimeMoE projects.
+This project is a focused fork of the [Time-Series-Library (TSLib)](https://github.com/thuml/Time-Series-Library) by THUML @ Tsinghua University. It reuses TSLib's experiment harness and layer library, and adds the stock-price datasets, the RevIN-wrapped baselines, and the RevTransLSTM-AR model family studied in the paper.
 
-## Contributing
-
-This is a **personal research repository**, and external pull requests are not accepted. However, the project is open source under the MIT license and **fork-friendly** — you are welcome to fork it, adapt it for your own experiments, and build on it.
+---
 
 ## License
 
-Released under the **MIT License**. See [`LICENSE`](./LICENSE).
+Released under the **MIT License** — see [`LICENSE`](./LICENSE).
 
-- Copyright © 2026 Chih-Chien Hsieh (FinTSLib)
+- Copyright © 2026 Chih-Chien Hsieh
 - Copyright © 2021 THUML @ Tsinghua University (Time-Series-Library)
+
+---
+
+## Contributing
+
+This is a **personal research repository** accompanying a publication, so external pull requests are not accepted (see [`CONTRIBUTING.md`](./CONTRIBUTING.md)). It is open source under MIT and **fork-friendly** — you are welcome to fork it, adapt it, and build on the benchmark. Bug reports and questions can be raised as Issues.
