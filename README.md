@@ -332,22 +332,27 @@ python -m utils.visualization --input results/<setting>/ --output test_results/<
 
 The registry ([`exp/exp_basic.py`](./exp/exp_basic.py)) **auto-discovers** models: drop a `.py` file anywhere under [`models/`](./models/) that defines a class named `Model`, and its filename (without `.py`) becomes the `--model` string — no manual registration. This is exactly how the RevIN baselines (`revin-*.py`) and the RevTransLSTM-AR family are wired in. An unknown `--model` name raises an error listing the discovered models.
 
-<!-- ---
+---
 
 ## Citation
 
 If you use this code or build on the benchmark, please cite the paper:
 
 ```bibtex
-@article{hsieh2026revtranslstmar,
-  title   = {A Fair Benchmark of Deep Models for Non-Stationary Stock Price
-             Forecasting: RevTransLSTM-AR as a Complexity Probe},
-  author  = {Hsieh, Chih-Chien},
-  year    = {2026}
+@article{hsuFairBenchmarkDeep2026,
+	title = {A fair benchmark of deep models for non-stationary stock price forecasting: RevTransLSTM-AR as a complexity probe},
+	journal = {Applied Soft Computing},
+	volume = {202},
+	pages = {116006},
+	year = {2026},
+	issn = {1568-4946},
+	doi = {https://doi.org/10.1016/j.asoc.2026.116006},
+	url = {https://www.sciencedirect.com/science/article/pii/S1568494626014547},
+	author = {Feng-Jui Hsu and Chih-Chien Hsieh and Shih-Chieh Lin and Chen-En Lan and Mu-Yen Chen},
 }
 ```
 
-> Bibliographic details (journal, volume, DOI) will be completed upon publication. -->
+> Bibliographic details (journal, volume, DOI) will be completed upon publication.
 
 ---
 
