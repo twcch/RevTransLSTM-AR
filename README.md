@@ -339,7 +339,7 @@ The registry ([`exp/exp_basic.py`](./exp/exp_basic.py)) **auto-discovers** model
 If you use this code or build on the benchmark, please cite the paper:
 
 ```bibtex
-@article{hsuFairBenchmarkDeep2026,
+@article{hsu2026FairBenchmarkDeep,
 	title = {A fair benchmark of deep models for non-stationary stock price forecasting: RevTransLSTM-AR as a complexity probe},
 	journal = {Applied Soft Computing},
 	volume = {202},
